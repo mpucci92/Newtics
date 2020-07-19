@@ -34,7 +34,6 @@ exchange_set = [re.sub("-|\.", "", exch) for exch in exchange_set]
 
 TICKER_PAT = "[A-Z\.-]{3,15}[\s]{0,1}:[\s]{0,1}[A-Z\.-]{1,15}"
 TICKER_PAT2 = "\((?:Symbol|Nasdaq|Euronext)[\s]{0,1}:[\s]{0,1}[A-Z\.-]+\)"
-SUB_PAT = "<pre(.*?)</pre>|<p(.*?)>|</p>|<img(.*?)/>|<img(.*?)></img>|<sup>(.*?)</sup>"
 
 ###################################################################################################
 
@@ -88,8 +87,9 @@ def tickers(item):
 			if 'ticker' in classes or len(href.intersection(href_set)) >= 1:
 				text = validate(text, ticker_matches, ticker_misses)
 
-			summary = summary.replace(str(a_tag), text)
+			a_tag.replace_with(_summary.new_string(text))
 
+		summary = str(_summary)
 		###############################################################################################
 		
 		fullcodes = re.findall(TICKER_PAT, summary)
@@ -104,7 +104,6 @@ def tickers(item):
 		for symbol in symbols:
 			validate(symbol[1:-1], ticker_matches, ticker_misses)
 
-		summary = re.sub(SUB_PAT, "", summary)
 		item['cleaned_summary'] = summary
 
 	def tags():
@@ -171,8 +170,13 @@ def tickers(item):
 
 if __name__ == '__main__':
 
+	ctr = 0
 	for item in tqdm(items):
 		tickers(item)
+		if item['ticker_matches']:
+			ctr += 1
+
+	print(ctr / len(items))
 
 	with open("data/items_T.json", "w") as file:
 		file.write(json.dumps(items))
