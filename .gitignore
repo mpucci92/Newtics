@@ -1,3 +1,4 @@
 tmp/
 data/items*
 data/month*
+__pycache__
